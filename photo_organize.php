@@ -46,7 +46,7 @@ foreach ($files as $file) {
 	} else {
 		$file_date=(filemtime($file)<filectime($file))?filemtime($file):filectime($file);
 		if ($info['fileformat']!="png") {
-			$log[$filename]['minorerror'][]="Can't find a date in file tags, used ".date("Y-m-d H:i:s",$file_date);
+			$log[$file]['minorerror'][]="Can't find a date in file tags, used ".date("Y-m-d H:i:s",$file_date);
 		}
 	}
 
@@ -68,7 +68,7 @@ foreach ($files as $file) {
 	
 	if ($success) {
 		// MARK -- Finish logging
-		$log[$filename]['success']=true;
+		$log[$file]['success']=true;
 		
 		// MARK -- Move the original file to completed
 		$path_parts=pathinfo($file);
@@ -81,7 +81,7 @@ foreach ($files as $file) {
 	} else {
 		// MARK - Error organizing
 		echo " - ERROR ORGANIZING\n";
-		$log[$filename]['error']="Organization Failure.";
+		$log[$file]['error']="Organization Failure.";
 	}
 	
 }

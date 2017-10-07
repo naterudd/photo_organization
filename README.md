@@ -1,12 +1,12 @@
-#photo organization
+# photo organization
 A collection of command line tools that perform basic organization tasks with photos.
 
-##Description of the tools
-* **Names Check:** This tool renames any picture it finds into a specific date/time naming scheme
+## Description of the tools
+* **Names Check:** This tool renames any photos it finds into a specific date/time naming scheme
 
 * **Photo Organize:** This tool organizes photos that are placed in a drop folder automatically.
 
-##Installation instructions
+## Installation instructions
 
 1. **Install additional libraries**
 
