@@ -24,7 +24,7 @@
 require_once("config.php");
 require_once("getid3/getid3.php");
 
-$files=readDirs($photo_organize_drop_base_path);
+$files=readDirs($photo_file_drop_base_path);
 sort($files);
 chdir("/");
 
@@ -58,12 +58,12 @@ foreach ($files as $file) {
 	// MARK - Copy to organized location
 
 	// MARK -- Verify / Create file organized container directory
-	if (!is_dir($photo_organize_organized_base_path."/".date('ym',$file_date))) {
-		mkdir($photo_organize_organized_base_path."/".date('ym',$file_date),0777);
+	if (!is_dir($photo_file_organized_base_path."/".date('ym',$file_date))) {
+		mkdir($photo_file_organized_base_path."/".date('ym',$file_date),0777);
 	}
 	
 	// MARK -- Copy the file
-	$new_file=$photo_organize_organized_base_path."/".date('ym',$file_date)."/".date("Ymd_His_",$file_date).$filename;
+	$new_file=$photo_file_organized_base_path."/".date('ym',$file_date)."/".date("Ymd_His_",$file_date).$filename;
 	$success = copy($file,$new_file);
 	
 	if ($success) {
@@ -101,13 +101,13 @@ if ($success!=""||$failure!=""||$minor!=""||$unexpected_types!="") {
 	$body.=($minor!="")?"<br/><div style='color:#c60;font-size:1.1em;font-weight:bold;'>Minor</div>\n<div>$minor</div>\n":"";
 	$body.=($unexpected_types!="")?"<br/><div style='color:#999;font-size:1.1em;font-weight:bold;'>Unexpected Types</div>\n<div>$unexpected_types</div>\n":"";
 	$body.=($success!="")?"<br/><div style='color:#090;font-size:1.1em;font-weight:bold;'>Success</div>\n<div>$success</div>\n":"";
-	$headers = array( "From: $photo_organize_email_from", "MIME-Version: 1.0", "Content-type: text/html" );
-	$rc = mail($photo_organize_email_to, "Photo Organization Results", $body, implode("\r\n", $headers) );
+	$headers = array( "From: $photo_file_email_from", "MIME-Version: 1.0", "Content-type: text/html" );
+	$rc = mail($photo_file_email_to, "Photo Organization Results", $body, implode("\r\n", $headers) );
 }
 
 
 function readDirs($path){
-	global $log, $photo_organize_acceptable_formats;
+	global $log, $photo_file_acceptable_formats;
 	$return_array=array();
 	$dirHandle = opendir($path);
 	while($file = readdir($dirHandle)){
@@ -116,7 +116,7 @@ function readDirs($path){
 		if(is_dir($path."/".$file) && $file!='.' && $file!='..' && $file!='completed'){
 			$return_array=array_merge_recursive($return_array, readDirs($path."/".$file));
 		} else if (key_exists('fileformat', $info)) { 
-			if (key_exists($info['fileformat'],$photo_organize_acceptable_formats)) {
+			if (key_exists($info['fileformat'],$photo_file_acceptable_formats)) {
 				$return_array[]=$path."/".$file;
 			} else {
 				if (count($log['unexpected_types'])) { if (!key_exists($info['fileformat'], $log['unexpected_types'])) {
