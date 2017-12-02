@@ -58,18 +58,24 @@ foreach ($files as $file) {
 	// MARK - Copy to organized location
 
 	// MARK -- Verify / Create file organized container directory
-	if (!is_dir($photo_file_organized_base_path."/".date('ym',$file_date))) {
-		mkdir($photo_file_organized_base_path."/".date('ym',$file_date),0777);
+	if (!is_dir($photo_file_organized_base_path.date('Ym',$file_date))) {
+		mkdir($photo_file_organized_base_path.date('Ym',$file_date),0777);
 	}
 	
 	// MARK -- Copy the file
-	$new_file=$photo_file_organized_base_path."/".date('ym',$file_date)."/".date("Ymd_His_",$file_date).$filename;
+	$new_file=$photo_file_organized_base_path.date('Ym',$file_date)."/".date("Ymd_His_",$file_date).$filename;
 	$success = copy($file,$new_file);
 	
 	if ($success) {
 		// MARK -- Finish logging
 		$log[$file]['success']=true;
 		
+		// Change copied file creation to match exif date taken
+		exec("SetFile -d '".date('m/d/Y H:i:s',$file_date)."' ".escapeshellarg($new_file));
+
+		// Change copeid file modification to match exif date taken
+		touch($new_file,$file_date); // touch -t
+
 		// MARK -- Move the original file to completed
 		$path_parts=pathinfo($file);
 		if (!is_dir($path_parts['dirname']."/completed")) {
