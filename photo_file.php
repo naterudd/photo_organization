@@ -45,7 +45,7 @@ foreach ($files as $file) {
 		$file_date=strtotime($info['jpg']['exif']['EXIF']['DateTimeOriginal']);
 	} else {
 		$file_date=(filemtime($file)<filectime($file))?filemtime($file):filectime($file);
-		if ($info['fileformat']!="png") {
+		if ($info['fileformat']!="avi"&&$info['fileformat']!="png") {
 			$log[$file]['minorerror'][]="Can't find a date in file tags, used ".date("Y-m-d H:i:s",$file_date);
 		}
 	}
@@ -63,7 +63,7 @@ foreach ($files as $file) {
 	}
 	
 	// MARK -- Copy the file
-	$new_file=$photo_file_organized_base_path.date('Ym',$file_date)."/".date("Ymd_His_",$file_date).$filename;
+	$new_file=$photo_file_organized_base_path."/".date('Ym',$file_date)."/".date("Ymd_His_",$file_date).$filename;
 	$success = copy($file,$new_file);
 	
 	if ($success) {
@@ -76,12 +76,27 @@ foreach ($files as $file) {
 		// Change copeid file modification to match exif date taken
 		touch($new_file,$file_date); // touch -t
 
-		// MARK -- Move the original file to completed
-		$path_parts=pathinfo($file);
-		if (!is_dir($path_parts['dirname']."/completed")) {
-			mkdir($path_parts['dirname']."/completed",0777);
+		// MARK -- Move the original file to archives
+		$archive_continer_name=explode("/",$file)[count(explode("/",$file))-2];
+		$archive_continer=date("Ymd")."_".(key_exists($archive_continer_name, $photo_file_archive_container_replacements)?$photo_file_archive_container_replacements[$archive_continer_name]:$archive_continer_name);
+		foreach ($photo_file_archive_base_path as $archive_path) {
+			$archive_file=$archive_path."/".$archive_continer."/".$filename;
+			if (!is_dir($archive_path."/".$archive_continer)) {
+				mkdir($archive_path."/".$archive_continer,0777);
+			}
+			$success = copy($file,$archive_file);
+			if (!$success) {
+				// MARK - Error organizing
+				echo " - ERROR ORGANIZING\n";
+				$log[$file]['error']="Organization Failure.";
+				break;
+			}
+			exec("SetFile -d '".date('m/d/Y H:i:s',$file_date)."' ".escapeshellarg($archive_file));		
+			touch($archive_file,$file_date); // touch -t
 		}
-		rename($file, $path_parts['dirname']."/completed/".$filename);
+		if ($success) { 
+			unlink($file);
+		}
 	
 		echo "\n";
 	} else {
@@ -91,7 +106,6 @@ foreach ($files as $file) {
 	}
 	
 }
-
 
 // MARK Send off the log
 $success="";$failure="";$minor="";$unexpected_types="";
@@ -108,7 +122,7 @@ if ($success!=""||$failure!=""||$minor!=""||$unexpected_types!="") {
 	$body.=($unexpected_types!="")?"<br/><div style='color:#999;font-size:1.1em;font-weight:bold;'>Unexpected Types</div>\n<div>$unexpected_types</div>\n":"";
 	$body.=($success!="")?"<br/><div style='color:#090;font-size:1.1em;font-weight:bold;'>Success</div>\n<div>$success</div>\n":"";
 	$headers = array( "From: $photo_file_email_from", "MIME-Version: 1.0", "Content-type: text/html" );
-	$rc = mail($photo_file_email_to, "Photo Organization Results", $body, implode("\r\n", $headers) );
+	$rc = mail($photo_file_email_to, "Photo Organization Results", $body, implode("\r\n", $headers), "-f $photo_file_email_from");
 }
 
 
@@ -119,7 +133,7 @@ function readDirs($path){
 	while($file = readdir($dirHandle)){
 		$getID3 = new getID3;
 		$info=$getID3->analyze($path."/".$file);
-		if(is_dir($path."/".$file) && $file!='.' && $file!='..' && $file!='completed'){
+		if(is_dir($path."/".$file) && $file!='.' && $file!='..' && $file!='ignore'){
 			$return_array=array_merge_recursive($return_array, readDirs($path."/".$file));
 		} else if (key_exists('fileformat', $info)) { 
 			if (key_exists($info['fileformat'],$photo_file_acceptable_formats)) {
