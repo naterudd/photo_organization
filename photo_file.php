@@ -58,8 +58,8 @@ foreach ($files as $file) {
 	// MARK - Copy to organized location
 
 	// MARK -- Verify / Create file organized container directory
-	if (!is_dir($photo_file_organized_base_path.date('Ym',$file_date))) {
-		mkdir($photo_file_organized_base_path.date('Ym',$file_date),0777);
+	if (!is_dir($photo_file_organized_base_path."/".date('Ym',$file_date))) {
+		mkdir($photo_file_organized_base_path."/".date('Ym',$file_date),0777);
 	}
 	
 	// MARK -- Copy the file
